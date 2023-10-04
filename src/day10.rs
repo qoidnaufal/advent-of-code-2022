@@ -34,7 +34,7 @@ struct Instruction {
 fn parse_input(input: &str) -> Vec<Instruction> {
     input
         .lines()
-        .enumerate()
+        .enumerate() // i used enumerate to help me debug some problem i got
         .map(|(mut idx, line)| {
             idx += 1;
             if line.starts_with("addx") {
@@ -80,5 +80,4 @@ fn part1() {
         .sum::<isize>();
 
     println!("{:?}", c);
-    // 13920
 }
