@@ -17,7 +17,6 @@ impl Signal {
 
             if i == 2 {
                 self.strength_after += instruction.adder;
-                self.strength_during = self.strength_after - instruction.adder;
             }
             vec_of_self.push(*self);
         }
