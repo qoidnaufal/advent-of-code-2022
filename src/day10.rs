@@ -22,6 +22,24 @@ impl Signal {
         }
         vec_of_self
     }
+
+    fn draw_pixel(&self) -> String {
+        let current_pixel = ((self.cycle - 1) % 40) as isize;
+
+        let sprite = vec![
+            self.strength_during - 1,
+            self.strength_during,
+            self.strength_during + 1,
+        ];
+
+        if self.cycle % 40 == 0 {
+            "\n".to_string()
+        } else if sprite.contains(&current_pixel) {
+            "#".to_string()
+        } else {
+            ".".to_string()
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -80,4 +98,25 @@ fn part1() {
         .sum::<isize>();
 
     println!("{:?}", c);
+}
+
+#[test]
+fn part2() {
+    let a = parse_input(INPUT);
+
+    let mut signal = Signal {
+        cycle: 0,
+        strength_during: 1,
+        strength_after: 1,
+    };
+
+    let b = a
+        .iter()
+        .map(|instruction| signal.execute_instruction(instruction))
+        .flat_map(|sig| sig)
+        .collect::<Vec<_>>();
+
+    let screen = b.iter().map(|sig| sig.draw_pixel()).collect::<String>();
+
+    println!("{}", screen);
 }
