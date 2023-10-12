@@ -40,11 +40,11 @@ impl Monkey {
         self.to_owned()
     }
 
-    pub fn bored_monkey(&mut self, down_scaler: usize) -> Self {
+    pub fn bored_monkey(&mut self) -> Self {
         self.items = self
             .items
             .iter()
-            .map(|worried_item| *worried_item / down_scaler)
+            .map(|worried_item| *worried_item / 3)
             .collect();
         self.to_owned()
     }
@@ -58,8 +58,7 @@ impl VecOfMonkey {
         for _ in 0..iteration {
             for i in 0..self.0.len() {
                 if divided_by_three == "yes" {
-                    let down_scaler = 3 as usize;
-                    self.0[i] = self.0[i].inspect().bored_monkey(down_scaler)
+                    self.0[i] = self.0[i].inspect().bored_monkey()
                 } else {
                     // 1) the worry value is no longer divided by 3
                     //    but if i proceed with "normal logic", i'll hit arithmetical overflow
@@ -76,7 +75,12 @@ impl VecOfMonkey {
                         .map(|monkey| monkey.test_divisor)
                         .product::<usize>();
 
-                    self.0[i] = self.0[i].inspect().bored_monkey(down_scaler)
+                    self.0[i].items = self.0[i]
+                        .inspect()
+                        .items
+                        .iter()
+                        .map(|worry_value| *worry_value % down_scaler)
+                        .collect::<VecDeque<_>>()
                 }
                 for _ in 0..self.0[i].items.len() {
                     let popped_item = self.0[i].items.pop_front();
