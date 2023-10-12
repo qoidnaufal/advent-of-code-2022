@@ -40,11 +40,11 @@ impl Monkey {
         self.to_owned()
     }
 
-    pub fn bored_monkey(&mut self) -> Self {
+    pub fn bored_monkey(&mut self, down_scaler: usize) -> Self {
         self.items = self
             .items
             .iter()
-            .map(|worried_item| *worried_item / 3)
+            .map(|worried_item| *worried_item / down_scaler)
             .collect();
         self.to_owned()
     }
@@ -54,11 +54,12 @@ impl Monkey {
 pub struct VecOfMonkey(Vec<Monkey>);
 
 impl VecOfMonkey {
-    pub fn throw(&mut self, iteration: usize, bored: &str) -> Self {
+    pub fn throw(&mut self, iteration: usize, divided_by_three: &str) -> Self {
         for _ in 0..iteration {
             for i in 0..self.0.len() {
-                if bored == "bored" {
-                    self.0[i] = self.0[i].inspect().bored_monkey()
+                if divided_by_three == "yes" {
+                    let down_scaler = 3 as usize;
+                    self.0[i] = self.0[i].inspect().bored_monkey(down_scaler)
                 } else {
                     // 1) the worry value is no longer divided by 3
                     //    but if i proceed with "normal logic", i'll hit arithmetical overflow
@@ -75,12 +76,7 @@ impl VecOfMonkey {
                         .map(|monkey| monkey.test_divisor)
                         .product::<usize>();
 
-                    self.0[i].items = self.0[i]
-                        .inspect()
-                        .items
-                        .iter()
-                        .map(|x| *x % down_scaler)
-                        .collect::<VecDeque<_>>()
+                    self.0[i] = self.0[i].inspect().bored_monkey(down_scaler)
                 }
                 for _ in 0..self.0[i].items.len() {
                     let popped_item = self.0[i].items.pop_front();
@@ -163,7 +159,7 @@ mod test {
     fn part1() {
         let mut a = parse_input(INPUT);
 
-        let b = a.throw(20, "bored").get_max_inspection();
+        let b = a.throw(20, "yes").get_max_inspection();
 
         println!("{:?}", b[0] * b[1]);
     }
@@ -172,7 +168,7 @@ mod test {
     fn part2() {
         let mut a = parse_input(INPUT);
 
-        let b = a.throw(10_000, "not bored").get_max_inspection();
+        let b = a.throw(10_000, "nope").get_max_inspection();
 
         println!("{:?}", b[0] * b[1]);
     }
