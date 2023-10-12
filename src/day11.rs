@@ -23,7 +23,7 @@ pub struct Monkey {
 }
 
 impl Monkey {
-    fn inspect(&mut self) -> Self {
+    pub fn inspect(&mut self) -> Self {
         self.items = self
             .items
             .iter()
@@ -40,7 +40,7 @@ impl Monkey {
         self.to_owned()
     }
 
-    fn bored_monkey(&mut self) -> Self {
+    pub fn bored_monkey(&mut self) -> Self {
         self.items = self
             .items
             .iter()
@@ -54,10 +54,34 @@ impl Monkey {
 pub struct VecOfMonkey(Vec<Monkey>);
 
 impl VecOfMonkey {
-    fn throw(&mut self) -> Self {
-        for _ in 0..20 {
+    pub fn throw(&mut self, iteration: usize, bored: &str) -> Self {
+        for _ in 0..iteration {
             for i in 0..self.0.len() {
-                self.0[i] = self.0[i].inspect().bored_monkey();
+                if bored == "bored" {
+                    self.0[i] = self.0[i].inspect().bored_monkey()
+                } else {
+                    // 1) the worry value is no longer divided by 3
+                    //    but if i proceed with "normal logic", i'll hit arithmetical overflow
+                    //    so everytime the monkey inspect and produce new worry value
+                    //    i need to scale down the worry value
+                    // 2) the most important aspect about worry value is, it will be "tested"
+                    //    and moved around to the recipient based on the test
+                    //    so, we can use the product of every test_divisor to scale down the worry value
+                    //    because eventually they will be tested by the test_divisor
+
+                    let down_scaler = self
+                        .0
+                        .iter()
+                        .map(|monkey| monkey.test_divisor)
+                        .product::<usize>();
+
+                    self.0[i].items = self.0[i]
+                        .inspect()
+                        .items
+                        .iter()
+                        .map(|x| *x % down_scaler)
+                        .collect::<VecDeque<_>>()
+                }
                 for _ in 0..self.0[i].items.len() {
                     let popped_item = self.0[i].items.pop_front();
                     if let Some(popped) = popped_item {
@@ -75,7 +99,7 @@ impl VecOfMonkey {
         self.to_owned()
     }
 
-    fn get_max_inspection(&self) -> Vec<usize> {
+    pub fn get_max_inspection(&self) -> Vec<usize> {
         let mut vec = self
             .0
             .iter()
@@ -84,7 +108,6 @@ impl VecOfMonkey {
         vec.sort();
         vec.reverse();
         vec
-        //vec.iter().take(2).into_iter().sum::<usize>()
     }
 }
 
@@ -103,10 +126,7 @@ pub fn parse_input(s: &str) -> VecOfMonkey {
                         }
                         "Starting" => {
                             let (_, strlist) = line.split_once(": ").unwrap();
-                            monkey.items = strlist
-                                .split(", ")
-                                .map(|w| w.parse::<usize>().unwrap())
-                                .collect()
+                            monkey.items = strlist.split(", ").map(|w| w.parse().unwrap()).collect()
                         }
                         "Operation:" => {
                             monkey.operations = match words[4] {
@@ -138,11 +158,21 @@ pub fn parse_input(s: &str) -> VecOfMonkey {
 #[cfg(test)]
 mod test {
     use super::*;
+
     #[test]
     fn part1() {
         let mut a = parse_input(INPUT);
 
-        let mut b = a.throw().get_max_inspection();
+        let b = a.throw(20, "bored").get_max_inspection();
+
+        println!("{:?}", b[0] * b[1]);
+    }
+
+    #[test]
+    fn part2() {
+        let mut a = parse_input(INPUT);
+
+        let b = a.throw(10_000, "not bored").get_max_inspection();
 
         println!("{:?}", b[0] * b[1]);
     }
