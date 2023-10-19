@@ -36,17 +36,16 @@ struct RuckSack {
     #[allow(dead_code)]
     compartment_1: Vec<Element>,
     #[allow(dead_code)]
-    compartment_2: Vec<Element>
+    compartment_2: Vec<Element>,
 }
 
 impl RuckSack {
     #[allow(dead_code)]
     fn compare(&self) -> HashSet<Element> {
-        self.compartment_1.iter()
+        self.compartment_1
+            .iter()
             .collect::<HashSet<_>>()
-            .intersection(&self.compartment_2
-                .iter()
-                .collect::<HashSet<_>>())
+            .intersection(&self.compartment_2.iter().collect::<HashSet<_>>())
             .cloned()
             .cloned()
             .collect::<HashSet<_>>()
@@ -54,8 +53,7 @@ impl RuckSack {
 
     #[allow(dead_code)]
     fn itering(&self) -> impl Iterator<Item = &Element> + '_ {
-        self.compartment_1.iter()
-            .chain(self.compartment_2.iter())
+        self.compartment_1.iter().chain(self.compartment_2.iter())
     }
 }
 
@@ -68,27 +66,24 @@ fn parse_input(input: &str) -> Vec<RuckSack> {
                 .chars()
                 .filter_map(|chr| Element::from_char(chr).ok())
                 .collect::<Vec<_>>();
-            
+
             let compartmet_size = slice_of_char.len() / 2;
 
             RuckSack {
                 compartment_1: slice_of_char[..compartmet_size].to_vec(),
-                compartment_2: slice_of_char[compartmet_size..].to_vec()
+                compartment_2: slice_of_char[compartmet_size..].to_vec(),
             }
-        }).collect()
+        })
+        .collect()
 }
 
 #[test]
 fn part1() {
     let a = parse_input(INPUT);
 
-    let b = a.iter()
-        .map(|rsck| rsck
-            .compare()
-            .iter()
-            .map(|elm| elm
-                .priority())
-            .sum::<u64>())
+    let b = a
+        .iter()
+        .map(|rsck| rsck.compare().iter().map(|elm| elm.priority()).sum::<u64>())
         .sum::<u64>();
 
     println!("{:?}", b);
@@ -102,17 +97,18 @@ fn part2() {
         .step_by(3)
         .map(|idx| &a[idx..idx + 3])
         .filter_map(|rsck| {
-            rsck.iter()
-                .fold(None::<HashSet<_>>, |acc, abc| {
-                    acc.map_or_else(
-                        || Some(abc.itering().collect()),
-                        |acc| {
-                            Some(acc.intersection(&abc.itering().collect())
-                            .copied()
-                            .collect())
-                        }
-                    )
-                })
+            rsck.iter().fold(None::<HashSet<_>>, |acc, abc| {
+                acc.map_or_else(
+                    || Some(abc.itering().collect()),
+                    |acc| {
+                        Some(
+                            acc.intersection(&abc.itering().collect())
+                                .copied()
+                                .collect(),
+                        )
+                    },
+                )
+            })
         })
         .flat_map(|intersection| intersection.into_iter())
         .map(|item| item.priority())
