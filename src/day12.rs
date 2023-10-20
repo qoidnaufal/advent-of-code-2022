@@ -51,13 +51,13 @@ impl HeightMap {
             .collect::<Vec<_>>()
     }
 
-    fn climb(&self) -> HashMap<(usize, usize), usize> {
+    fn climb(&self, start: (usize, usize)) -> HashMap<(usize, usize), usize> {
         let mut to_visit = VecDeque::new();
 
         let mut path = HashMap::new();
-        path.insert(self.start, 0usize);
+        path.insert(start, 0usize);
 
-        to_visit.extend(self.next_valid_destination(self.start));
+        to_visit.extend(self.next_valid_destination(start));
 
         while let Some(valid_dest) = to_visit.pop_front() {
             let next_valid = self.next_valid_destination(valid_dest);
@@ -82,7 +82,6 @@ impl HeightMap {
             }
         }
         path
-        // path.get(&self.end).unwrap().clone()
     }
 }
 
@@ -135,12 +134,38 @@ mod test {
     fn part1() {
         let a = parse_input(INPUT);
 
-        let b = a.climb();
+        let b = a.climb(a.start);
 
         println!(
             "\n-----point is: {:?},\n-----distance is: {:?}",
             a.end,
             b.get(&a.end)
         );
+    }
+
+    #[test]
+    fn part2() {
+        let a = parse_input(INPUT);
+
+        let mut coordinate_of_ones = vec![];
+
+        for i in a.data.iter() {
+            if i.contains(&1) {
+                let idx_y = a.data.iter().position(|vec| vec == i).unwrap();
+
+                for idx_x in 0..a.data[idx_y].len() {
+                    if a.data[idx_y][idx_x] == 1 {
+                        coordinate_of_ones.push((idx_x, idx_y));
+                    }
+                }
+            }
+        }
+
+        let min_distance_from_pos_a = coordinate_of_ones
+            .iter()
+            .filter_map(|&start| a.climb(start).get(&a.end).cloned())
+            .min();
+
+        println!("{:?}", min_distance_from_pos_a);
     }
 }
