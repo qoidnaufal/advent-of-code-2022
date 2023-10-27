@@ -6,7 +6,7 @@ use std::{
 
 static INPUT: &'static str = include_str!("./day13.txt");
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 enum Packet {
     Num(i32),
     List(Vec<Self>),
@@ -107,15 +107,40 @@ impl Ord for Packet {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct Signal {
     left_packet: Packet,
     right_packet: Packet,
 }
 
-impl Signal {
-    fn in_right_order(&self) -> bool {
-        self.left_packet < self.right_packet
+impl IntoIterator for Signal {
+    type Item = Packet;
+    type IntoIter = SignalIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        SignalIterator {
+            signal: self,
+            index: 0,
+        }
+    }
+}
+
+struct SignalIterator {
+    signal: Signal,
+    index: usize,
+}
+
+impl Iterator for SignalIterator {
+    type Item = Packet;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = match self.index {
+            0 => self.signal.left_packet.clone(),
+            1 => self.signal.right_packet.clone(),
+            _ => return None,
+        };
+        self.index += 1;
+        Some(result)
     }
 }
 
@@ -148,7 +173,7 @@ mod test {
             .enumerate()
             .map(|(idx, signal)| {
                 let mut marker = 0;
-                if signal.in_right_order() {
+                if signal.left_packet < signal.right_packet {
                     marker += idx + 1;
                 }
                 marker
@@ -156,5 +181,29 @@ mod test {
             .sum::<usize>();
 
         println!("{:?}", b);
+    }
+
+    #[test]
+    fn part2() {
+        let a = parse_input(INPUT);
+
+        let two = Packet::from_str("[[2]]").unwrap();
+        let six = Packet::from_str("[[6]]").unwrap();
+
+        let mut b = a
+            .iter()
+            .map(|signal| signal.clone().into_iter())
+            .flat_map(|s| s)
+            .collect::<Vec<_>>();
+
+        b.push(two.clone());
+        b.push(six.clone());
+
+        b.sort();
+
+        let position_of_two = b.iter().position(|packet| *packet == two).unwrap() + 1;
+        let position_of_six = b.iter().position(|packet| *packet == six).unwrap() + 1;
+
+        println!("{:?}", position_of_two * position_of_six);
     }
 }
